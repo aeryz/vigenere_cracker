@@ -3,11 +3,12 @@
 #include "vigenere.hpp"
 #include <cmath>
 
-VigenereCracker::VigenereCracker(std::string cipher_text, UnsignedPair<float> freq_table) {
+VigenereCracker::VigenereCracker(std::string cipher_text, UnsignedPair<float> freq_table, std::string min_kl, std::string max_kl) {
     m_cipher_text = cipher_text;
     m_freq_table = freq_table;
-    MAX_KEY_LENGTH = 22;
-    MAX_KL_TRIES = 5;
+    MAX_KEY_LENGTH = max_kl == "" ? cipher_text.size() - 1 : std::stoi(max_kl);
+
+    MIN_KEY_LENGTH = min_kl == "" ? 2 : std::stoi(min_kl);
     m_freq_table.sort();
 }
 
@@ -24,11 +25,10 @@ int VigenereCracker::get_coincidences(int offset) {
 }
 
 void VigenereCracker::set_key_length_table() {
-    for (int i = 1; i <= MAX_KEY_LENGTH % (m_cipher_text.length() - 1); i++) {
+    for (int i = 1; i <= MAX_KEY_LENGTH % m_cipher_text.length(); i++) {
         m_key_length_table.set_value(i, get_coincidences(i));
         m_key_length_table.sort();
     }
-    std::cout << m_key_length_table.to_string() << std::endl;
 }
 
 UnsignedPair<float> VigenereCracker::get_char_count_table(int key_length, int offset) {
@@ -38,12 +38,12 @@ UnsignedPair<float> VigenereCracker::get_char_count_table(int key_length, int of
     }
     float count = char_count_table.sum_of_values();
 
-    
+
     for (int i = 0; i < char_count_table.size(); i++) {
         float key = char_count_table.get_nth_element(i)[0];
         char_count_table.set_value(key, char_count_table.get_value(key) / count);
     }
-    
+
     return char_count_table;
 }
 
@@ -52,12 +52,7 @@ float VigenereCracker::point_of_guess(UnsignedPair<float> cct, int key_length, i
     if (shift < 0) shift += 26;
     float error = 0;
     float count = 0;
-    
-    std::cout << (char) ('A' + shift) << " ";
-    
-//    std::cout << "checking guess for key: " << (char) (shift + 'A') << std::endl;
-//    std::cout << "cipher     guess     c_freq     r_freq" << std::endl;
-    
+
     for (int i = 0; i < cct.size(); i++) {
         char guess = cct.get_nth_element(i)[0] - shift;
         if (guess < 'A') guess = 'Z' + 1 - ('A' - guess);
@@ -65,22 +60,19 @@ float VigenereCracker::point_of_guess(UnsignedPair<float> cct, int key_length, i
         float a = cct.get_value(cct.get_nth_element(i)[0]) / m_freq_table.get_value(guess);
         error += abs(1 - a);
         count++;
-//        std::cout << (char) cct.get_nth_element(i)[0] << "          " << guess << "          " << cct.get_value(cct.get_nth_element(i)[0])  << "          " << m_freq_table.get_value(guess) << std::endl;
     }
-    
-//    std::cout << "ERROR: " << error/count << std::endl;
+
     return error/count;
 }
 
 char VigenereCracker::guess_single_char(int key_length, int offset) {
     UnsignedPair<float> char_count_table = get_char_count_table(key_length, offset);
     char_count_table.sort();
-    
+
     char_count_table.fixed_merge(m_freq_table);
-    
+
     float sum = 1000;
     char output;
-    std::cout << key_length << " key length" << std::endl;
     for (int i = 0; i < 3; i++) {
         char temp_output = char_count_table.get_nth_element(i)[0];
         float pog = this -> point_of_guess(char_count_table, key_length, offset, temp_output - 'E');
@@ -91,9 +83,7 @@ char VigenereCracker::guess_single_char(int key_length, int offset) {
             output += 'A';
         }
     }
-    
-//    std::cout << "decided: " << output << std::endl;
-    
+
     return output;
 }
 
@@ -111,10 +101,21 @@ std::string VigenereCracker::guess_key(int key_length) {
 void VigenereCracker::crack() {
     set_key_length_table();
     for (int i = 0; i < MAX_KEY_LENGTH; i++) {
-        std::cout << "#######################" << std::endl;
         std::string key = guess_key(m_key_length_table.get_nth_element(i)[0]);
-        std::cout << key << std::endl;
-        std::cout << "#######################" << std::endl;
-        std::cout <<  Vigenere::decrypt(m_cipher_text, key) << std::endl;
+        std::cout << "Key Guess: " << key << std::endl;
+        int n = 0;
+        int cipher_size = m_cipher_text.size();
+        int len = 100 > cipher_size ? cipher_size : 100;
+        std::string decrypted = Vigenere::decrypt(m_cipher_text, key);
+        while (n + len <= cipher_size) {
+            std::cout << decrypted.substr(n, len);
+            std::string choice;
+            getline(std::cin, choice);
+            if (choice == "p" || choice == "P") break;
+            n += len;
+            len = n + 100 > cipher_size ? cipher_size - n : 100;
+            if (len == 0) break;
+        }
+        std::cout << "\n";
     }
 }
