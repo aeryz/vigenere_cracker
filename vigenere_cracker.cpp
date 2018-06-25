@@ -71,13 +71,13 @@ char VigenereCracker::guess_single_char(int key_length, int offset) {
 
     char_count_table.fixed_merge(m_freq_table);
 
-    float sum = 1000;
+    float chi = 1000;
     char output;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 1; i++) {
         char temp_output = char_count_table.get_nth_element(i)[0];
         float pog = this -> point_of_guess(char_count_table, key_length, offset, temp_output - 'E');
-        if (pog < sum) {
-            sum = pog;
+        if (pog < chi) {
+            chi = pog;
             output = temp_output - 'E';
             if (output < 0) output += 26;
             output += 'A';
