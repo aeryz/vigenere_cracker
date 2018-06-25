@@ -1,5 +1,3 @@
-# vigenere_cracker
-
 #Vigenere Cracker
 Vigenere Cracker is a vigenere cipher cracking tool based on frequency analysis.
 
