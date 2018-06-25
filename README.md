@@ -3,13 +3,13 @@ Vigenere Cracker is a vigenere cipher cracking tool based on frequency analysis.
 
 ## Usage
 ### Parameters:
--h, --help:         Print usage message.
--f, --freq-table:   Specify a frequency table. If not specified, default frequency
-table will be used.
--M, --max-kl:       Specify maximum key length. Default is cipher length - 1.
--m, --min-kl:       Specify minimum key length. Default is 2.
--c, --cipher:       Specify cipher text.
--d, --cipher-file:  Specify the file path which includes cipher text.
+-h, --help:         Print usage message.<br />
+-f, --freq-table:   Specify a frequency table. If not specified, default frequency 
+table will be used.<br />
+-M, --max-kl:       Specify maximum key length. Default is cipher length - 1.<br />
+-m, --min-kl:       Specify minimum key length. Default is 2.<br />
+-c, --cipher:       Specify cipher text.<br />
+-d, --cipher-file:  Specify the file path which includes cipher text.<br />
 
 **Note:** Cipher or cipher file path should be specified.
 
